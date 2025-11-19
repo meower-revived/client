@@ -184,6 +184,29 @@
 		BGM.playBGM($user.bgm_song);
 		screen.set("main");
 	}
+
+	function githubLogin() {
+		$page = "blank";
+
+		const popup = window.open("https://meower.org/oauth/github", 'GitHub Login', 'height=700,width=500');
+		const closedTimer = setInterval(() => {
+			if (popup.closed) {
+				clearInterval(closedTimer);
+				$page = "welcome";
+			}
+		}, 500);
+
+		window.addEventListener("message", (ev) => {
+			if (ev.origin !== "https://meower.org") return;
+			
+			if (ev.data.type === "ready") {
+				popup.postMessage({ type: "start-oauth" }, ev.origin);
+			} else if (ev.data.type === "finish-oauth") {
+				doLogin(ev.data.account._id, ev.data.token, true);
+				popup.close();
+			}
+		});
+	}
 </script>
 
 <div bind:this={setup} out:fade={{duration: 500}} class="setup white">
@@ -244,6 +267,7 @@
 					>
 					<p class="small">{loginStatus}</p>
 				{/if}
+				<button on:click={githubLogin}>Log in with GitHub</button>
 				{#if !requireLogin}
 					<button
 						on:click={() => {
